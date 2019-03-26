@@ -15,4 +15,5 @@ phases:
 artifacts:
   files:
     - authentication/create-s3-upload-policy-document/get-upload-policy.zip
+    - authentication/create-s3-upload-policy-document/appspec.yml
   discard-paths: yes
