@@ -12,7 +12,6 @@ phases:
   post_build:
     commands:
       - echo Build completed on `date`
-      - mvn package -DskipTests
 artifacts:
   files:
     - get-upload-policy.zip
