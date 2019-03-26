@@ -14,5 +14,5 @@ phases:
       - echo Build completed on `date`
 artifacts:
   files:
-    - get-upload-policy.zip
+    - authentication/create-s3-upload-policy-document/get-upload-policy.zip
   discard-paths: yes
