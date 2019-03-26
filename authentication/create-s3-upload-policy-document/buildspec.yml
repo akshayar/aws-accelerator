@@ -4,6 +4,8 @@ phases:
   build:
     commands:
       - echo Build started on `date`
+      - cd authentication/create-s3-upload-policy-document
+      - pwd
       - npm install --save-dev pack-zip
       - npm install
       - npm run build-aws-lambda
