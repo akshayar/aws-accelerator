@@ -1,0 +1,16 @@
+version: 0.2
+
+phases:
+  build:
+    commands:
+      - echo Build started on `date`
+      - npm install
+      - npm run build-aws-lambda
+  post_build:
+    commands:
+      - echo Build completed on `date`
+      - mvn package -DskipTests
+artifacts:
+  files:
+    - get-upload-policy.zip
+  discard-paths: yes
