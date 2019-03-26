@@ -1,19 +1,21 @@
 version: 0.2
 
 phases:
+  install: 
+    commands:
+      - npm install --save-dev -g pack-zip
   build:
     commands:
       - echo Build started on `date`
       - cd authentication/create-s3-upload-policy-document
       - pwd
-      - npm install --save-dev pack-zip
       - npm install
       - npm run build-aws-lambda
+      - npm run s3-cp
   post_build:
     commands:
       - echo Build completed on `date`
 artifacts:
   files:
-    - authentication/create-s3-upload-policy-document/get-upload-policy.zip
     - authentication/create-s3-upload-policy-document/appspec.yml
   discard-paths: yes
