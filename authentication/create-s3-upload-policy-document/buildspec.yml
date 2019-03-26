@@ -4,6 +4,7 @@ phases:
   build:
     commands:
       - echo Build started on `date`
+      - npm install --save-dev pack-zip
       - npm install
       - npm run build-aws-lambda
   post_build:
