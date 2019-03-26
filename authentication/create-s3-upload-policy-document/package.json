@@ -1,0 +1,16 @@
+{
+  "name": "get-upload-policy",
+  "version": "1.0.0",
+  "description": "This Lambda function will generate and return a policy to allow users to upload files to S3",
+  "main": "index.js",
+  "scripts": {
+    "build-aws-lambda": "pack-zip",
+    "s3-cp": "aws s3 cp get-upload-policy.zip s3://aksh-test-deploy/transcoder/get-upload-policy.zip",
+    "update-code": "aws lambda update-function-code --s3-bucket aksh-test-deploy --s3-key transcoder/get-upload-policy.zip --function-name"
+  },
+  "author": "Peter Sbarski",
+  "license": "BSD-2-Clause",
+  "dependencies": {
+    "aws-sdk": "^2.203.0"
+  }
+}

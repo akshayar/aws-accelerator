@@ -1,0 +1,25 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Resources:
+  TranscoderLambdaIAM:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://s3.amazonaws.com/aksh-test-deploy/transcoder/transcoder-lambda-iam.yml
+      TimeoutInMinutes: '60'
+      Parameters:
+        AppName: transcoder
+  TranscoderLambda:
+    DependsOn: TranscoderLambdaIAM
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://s3.amazonaws.com/aksh-test-deploy/transcoder/transcoder-lambda-resources.yml
+      TimeoutInMinutes: '60'
+      Parameters:
+        AppName: transcoder
+        RoleArn: !GetAtt TranscoderLambdaIAM.Outputs.RoleArn
+        LandingBucketName: video-landing
+
+Outputs:
+  TranscoderLambda:
+    Value: !Ref TranscoderLambda
+  TranscoderIAM:
+    Value: !Ref TranscoderLambdaIAM

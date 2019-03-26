@@ -1,0 +1,44 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: This template creates a s3 bucket
+Parameters:
+  GroupId:
+    Description: Business Unit
+    Type: String
+    Default: research
+  ApplicationId:
+    Description: Application Id
+    Type: String
+    Default: aws
+  Environment:
+    Description: Environment
+    Type: String
+    Default: dit  
+  AppName:
+    Type: String
+    Description: AppName.
+    Default: user-profile
+  DeployBucket:
+    Type: String
+    Description: DeployBucket.
+    Default: aksh-test-deploy
+Resources:
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Description: Defining a execution role for clean up lambda
+    Properties:
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+      RoleName: !Sub '${GroupId}-${ApplicationId}-${Environment}-${AppName}-role'
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action:
+              - sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+Outputs:
+  RoleArn:
+    Value: !GetAtt LambdaExecutionRole.Arn
+    Export:
+      Name: UserProfileRoleArn

@@ -1,0 +1,26 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Resources:
+  LandingBucket:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://s3.amazonaws.com/aksh-test-deploy/transcoder/transcoder-bucket-resource.yml
+      TimeoutInMinutes: '60'
+      Parameters:
+        BucketName: video-landing
+  TranscodedBucket:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://s3.amazonaws.com/aksh-test-deploy/transcoder/transcoder-bucket-resource.yml
+      TimeoutInMinutes: '60'
+      Parameters:
+        BucketName: video-transcoded
+
+Outputs:
+  LandingBucket:
+    Value: !Ref LandingBucket
+  LandingBucketName:
+    Value: !GetAtt LandingBucket.Outputs.Bucket
+  TranscodedBucket:
+    Value: !Ref TranscodedBucket
+  TranscodedBucketName:
+    Value: !GetAtt TranscodedBucket.Outputs.Bucket

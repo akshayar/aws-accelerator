@@ -1,0 +1,64 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Resources:
+  CustomAuthLambdaIAM:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://s3.amazonaws.com/aksh-test-deploy/transcoder/auth-lambda/custom-auth-lambda-iam.yml
+      TimeoutInMinutes: '60'
+      Parameters:
+        AppName: custom-auth
+  CustomAuthLambda:
+    DependsOn: CustomAuthLambdaIAM
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://s3.amazonaws.com/aksh-test-deploy/transcoder/auth-lambda/custom-auth-lambda-resources.yml
+      TimeoutInMinutes: '60'
+      Parameters:
+        AppName: custom-auth
+        RoleArn: !GetAtt CustomAuthLambdaIAM.Outputs.RoleArn
+
+  UserProfileLambdaIAM:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://s3.amazonaws.com/aksh-test-deploy/transcoder/auth-lambda/user-profile-lambda-iam.yml
+      TimeoutInMinutes: '60'
+      Parameters:
+        AppName: user-profile
+
+  UserProfileLambda:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://s3.amazonaws.com/aksh-test-deploy/transcoder/auth-lambda/user-profile-lambda-resources.yml
+      TimeoutInMinutes: '60'
+      Parameters:
+        AppName: user-profile
+        RoleArn: !GetAtt CustomAuthLambdaIAM.Outputs.RoleArn
+  UpdatePolicyLambdaIAM:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://s3.amazonaws.com/aksh-test-deploy/transcoder/auth-lambda/get-upload-policy-lambda-iam.yml
+      TimeoutInMinutes: '60'
+      Parameters:
+        AppName: get-upload-policy
+        UploadBucket: research-aws-dit-video-landing
+
+  UpdatePolicyLambda:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://s3.amazonaws.com/aksh-test-deploy/transcoder/auth-lambda/get-upload-policy-lambda-resources.yml
+      TimeoutInMinutes: '60'
+      Parameters:
+        AppName: get-upload-policy
+        RoleArn: !GetAtt UpdatePolicyLambdaIAM.Outputs.RoleArn
+        UploadRoleArn: UpdatePolicyLambdaIAM.Outputs.UploadRoleArn
+        UploadBucket: research-aws-dit-video-landing
+
+Outputs:
+  CustomAuthLambda:
+    Value: !Ref CustomAuthLambda
+  CustomAuthLambdaIAM:
+    Value: !Ref CustomAuthLambdaIAM
+  UserProfileLambda:
+    Value: !Ref UserProfileLambda
+  UserProfileLambdaIAM:
+    Value: !Ref UserProfileLambdaIAM

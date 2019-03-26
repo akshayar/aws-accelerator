@@ -1,0 +1,87 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: This template creates a s3 bucket
+Parameters:
+  GroupId:
+    Description: Business Unit
+    Type: String
+    Default: research
+  ApplicationId:
+    Description: Application Id
+    Type: String
+    Default: aws
+  Environment:
+    Description: Environment
+    Type: String
+    Default: dit  
+  AppName:
+    Type: String
+    Description: AppName.
+    Default: get-upload-policy
+  UploadRoleName:
+    Type: String
+    Description: UploadRoleName.
+    Default: upload
+  UploadBucket:
+    Type: String
+    Description: UploadBucket.
+  DeployBucket:
+    Type: String
+    Description: DeployBucket.
+    Default: aksh-test-deploy
+Resources:
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Description: Defining a execution role for clean up lambda
+    Properties:
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+      RoleName: !Sub '${GroupId}-${ApplicationId}-${Environment}-${AppName}-role'
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action:
+              - sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+  UploadS3Role:
+    Type: AWS::IAM::Role
+    Description: Defining a role to upload lambda
+    Properties:
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+      RoleName: !Sub '${GroupId}-${ApplicationId}-${Environment}-${UploadRoleName}-role'
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action:
+              - sts:AssumeRole
+            Effect: Allow
+            Principal:
+              AWS:
+                - !GetAtt LambdaExecutionRole.Arn
+      Path: /
+      Policies:
+        - PolicyName: !Sub '${GroupId}-${ApplicationId}-${Environment}-${UploadRoleName}-policy'
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:ListBucket
+                Resource:
+                  - !Sub 'arn:aws:s3:::${UploadBucket}'
+              - Effect: Allow
+                Action:
+                  - s3:PutObject
+                Resource:
+                  - !Sub 'arn:aws:s3:::${UploadBucket}/*'
+
+Outputs:
+  RoleArn:
+    Value: !GetAtt LambdaExecutionRole.Arn
+    Export:
+      Name: GetUploadPolicyRoleArn
+  UploadRoleArn:
+    Value: !GetAtt UploadS3Role.Arn
+    Export:
+      Name: UploadRoleArn

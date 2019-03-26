@@ -1,0 +1,86 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: This template creates a s3 bucket
+Parameters:
+  zipFileLocation:
+    Type: String
+    Description: S3 Object Key of lambda code.
+    Default: transcoder/user-profile.zip 
+  MemorySize:
+    Type: Number
+    Description: Memory Size
+    Default: '256'
+  Timeout:
+    Type: Number
+    Description: Time out
+    Default: '60'
+  GroupId:
+    Description: Business Unit
+    Type: String
+    Default: research
+  ApplicationId:
+    Description: Application Id
+    Type: String
+    Default: aws
+  Environment:
+    Description: Environment
+    Type: String
+    Default: dit  
+  AppName:
+    Type: String
+    Description: AppName.
+    Default: get-upload-policy
+  DeployBucket:
+    Type: String
+    Description: DeployBucket.
+    Default: aksh-test-deploy
+  HandlerClass:
+    Type: String
+    Description: HandlerClass.
+    Default: index.handler
+  RoleArn:
+    Type: String
+    Description: Role Arn
+  UploadRoleArn:
+    Type: String
+    Description: Upload Role Arn
+  UploadBucket:
+    Type: String
+    Description: Upload Role Arn
+  Alias:
+    Description: Alias
+    Type: String
+    Default: current
+Resources:
+  LambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket: !Sub '${DeployBucket}'
+        S3Key: !Sub '${zipFileLocation}'
+      FunctionName: !Sub '${GroupId}-${ApplicationId}-${Environment}-${AppName}'
+      MemorySize: !Ref 'MemorySize'
+      Handler: !Ref 'HandlerClass'
+      Role: !Ref RoleArn
+      Runtime: "nodejs8.10"
+      Timeout: !Ref 'Timeout'
+      Environment: 
+        Variables:
+          UPLOAD_BUCKET: !Ref UploadBucket
+          ROLE_ARN: !Ref UploadRoleArn
+  LambdaFunctionVersion: 
+    Type: AWS::Lambda::Version
+    Properties: 
+      FunctionName: 
+        Ref: "LambdaFunction"
+      Description: "A version"
+  LambdaFunctionAlias: 
+    Type: AWS::Lambda::Alias
+    Properties: 
+      FunctionName: 
+        Ref: "LambdaFunction"
+      FunctionVersion: 
+        Fn::GetAtt: 
+          - "LambdaFunctionVersion"
+          - "Version"
+      Name:
+        Ref: "Alias"

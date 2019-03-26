@@ -1,0 +1,17 @@
+{
+  "name": "user-profile",
+  "version": "1.0.0",
+  "description": "This Lambda function returns the current user-profile",
+  "main": "index.js",
+  "scripts": {
+    "build-aws-lambda": "repack-zip",
+    "s3-cp": "aws s3 cp user-profile.zip s3://aksh-test-deploy/transcoder/user-profile.zip",
+    "update-code": "aws lambda update-function-code --s3-bucket aksh-test-deploy --s3-key transcoder/user-profile.zip --function-name"
+  },
+  "author": "Peter Sbarski",
+  "license": "BSD-2-Clause",
+  "dependencies": {
+    "request": "^2.83.0",
+    "request-promise": "^4.2.2"
+  }
+}

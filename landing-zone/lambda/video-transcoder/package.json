@@ -1,0 +1,19 @@
+{
+  "name": "transcode-video",
+  "version": "1.0.0",
+  "description": "This Lambda function will create a job to transcode videos uploaded to an S3 bucket",
+  "main": "index.js",
+  "scripts": {
+    "build-aws-lambda": "pack-zip",
+    "s3-cp": "aws s3 cp transcode-video.zip s3://aksh-test-deploy/transcoder/transcode-video.zip",
+    "update-code": "aws lambda update-function-code --s3-bucket aksh-test-deploy --s3-key transcoder/transcode-video.zip --function-name"
+  },
+  "author": "Peter Sbarski",
+  "license": "BSD-2-Clause",
+  "dependencies": {
+    "aws-sdk": "^2.203.0"
+  },
+  "devDependencies": {
+    "npm-pack-zip": "^1.2.7"
+  }
+}

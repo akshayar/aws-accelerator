@@ -1,0 +1,18 @@
+{
+  "name": "custom-authorizer",
+  "version": "1.0.0",
+  "description": "This Lambda function is used to authorize requests",
+  "main": "index.js",
+  "scripts": {
+    "build-aws-lambda": "pack-zip",
+    "s3-cp": "aws s3 cp custom-authorizer.zip s3://aksh-test-deploy/transcoder/custom-authorizer.zip",
+    "update-code": "aws lambda update-function-code --s3-bucket aksh-test-deploy --s3-key transcoder/custom-authorizer.zip --function-name"
+  },
+  "dependencies": {
+    "jsonwebtoken": "^5.7.0",
+    "request": "^2.83.0",
+    "request-promise": "^4.2.2"
+  },
+  "author": "Peter Sbarski",
+  "license": "BSD-2-Clause"
+}

@@ -1,0 +1,58 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: This template creates a s3 bucket
+Parameters:
+  GroupId:
+    Description: Business Unit
+    Type: String
+    Default: research
+  ApplicationId:
+    Description: Application Id
+    Type: String
+    Default: aws
+  Environment:
+    Description: Environment
+    Type: String
+    Default: dit  
+  BucketName:
+    Type: String
+    Description: BucketName.
+    Default: landing-zone
+Resources:
+  S3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub '${GroupId}-${ApplicationId}-${Environment}-${BucketName}'
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: false
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      Tags:
+        - Key: GroupId
+          Value: !Ref 'GroupId'
+        - Key: Environment
+          Value: !Ref 'Environment'
+        - Key: ApplicationId
+          Value: !Ref 'ApplicationId'
+  S3BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref S3Bucket
+      PolicyDocument:
+        Statement:
+          - Sid: PermissionOnCustomResourceLambda
+            Effect: "Allow"
+            Principal: 
+              AWS: !ImportValue S3BucketConfigurationLambdaRoleArn
+            Action: "s3:PutBucketNotification"
+            Resource: !Sub 'arn:aws:s3:::${GroupId}-${ApplicationId}-${Environment}-${BucketName}'
+          - Sid: PublicPermission
+            Effect: "Allow"
+            Principal: "*"
+            Action: "s3:GetObject"
+            Resource: !Sub 'arn:aws:s3:::${GroupId}-${ApplicationId}-${Environment}-${BucketName}/*'
+Outputs:
+  Bucket:
+    Value: !Ref S3Bucket
+    Export:
+      Name: !Ref BucketName

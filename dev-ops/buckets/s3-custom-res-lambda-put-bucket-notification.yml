@@ -1,0 +1,110 @@
+Description: Upload an object to an S3 bucket, triggering a Lambda event, returning the object key as a Stack Output.
+Parameters:
+  GroupId:
+    Description: Business Unit
+    Type: String
+    Default: research
+  ApplicationId:
+    Description: Application Id
+    Type: String
+    Default: aws
+  Environment:
+    Description: Environment
+    Type: String
+    Default: dit
+  FunctionName:
+    Description: Function Name
+    Type: String
+    Default: put-notification
+  DeployBucketName:
+    Description: S3 Bucket name (must already exist)
+    Type: String
+    Default: aksh-test-deploy
+  Alias:
+    Description: Alias
+    Type: String
+    Default: current
+
+Resources:
+  S3BucketConfiguration:
+    Type: AWS::Lambda::Function
+    Properties:
+      Description: S3 Object Custom Resource
+      Handler: index.handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      FunctionName: !Sub '${GroupId}-${ApplicationId}-${Environment}-${FunctionName}'
+      Code:
+        ZipFile: !Sub |
+          var response = require('cfn-response');
+          var AWS = require('aws-sdk');
+          var s3 = new AWS.S3();
+          exports.handler = function(event, context) {
+            var respond = (e) => response.send(event, context, e ? response.FAILED : response.SUCCESS, e ? e : {});
+            process.on('uncaughtException', e=>failed(e));
+            var params = event.ResourceProperties;
+            delete params.ServiceToken;
+            if (event.RequestType === 'Delete') {
+              params.NotificationConfiguration = {};
+              s3.putBucketNotificationConfiguration(params).promise()
+                .then((data)=>respond())
+                .catch((e)=>respond());
+            } else {
+              s3.putBucketNotificationConfiguration(params).promise()
+                .then((data)=>respond())
+                .catch((e)=>respond(e));
+            }
+          };
+      Timeout: 30
+      Runtime: nodejs8.10
+  TestingNewFeature: 
+    Type: AWS::Lambda::Version
+    Properties: 
+      FunctionName: 
+        Ref: "S3BucketConfiguration"
+      Description: "A new version"
+  AliasForMyApp: 
+    Type: AWS::Lambda::Alias
+    Properties: 
+      FunctionName: 
+        Ref: "S3BucketConfiguration"
+      FunctionVersion: 
+        Fn::GetAtt: 
+          - "TestingNewFeature"
+          - "Version"
+      Name:
+        Ref: "Alias"
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal: {Service: [lambda.amazonaws.com]}
+          Action: ['sts:AssumeRole']
+      Path: /
+      ManagedPolicyArns:
+      - "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+      Policies:
+      - PolicyName: S3Policy
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - 's3:PutObject'
+                - 'S3:DeleteObject'
+              Resource: !Sub "arn:aws:s3:::${DeployBucketName}/*"
+Outputs:
+  RoleArn:
+    Value: !GetAtt LambdaExecutionRole.Arn
+    Export:
+      Name: S3BucketConfigurationLambdaRoleArn
+  Function:
+    Value: !GetAtt S3BucketConfiguration.Arn
+    Export:
+      Name: S3BucketConfigurationLambdaArn
+  FunctionAlias:
+    Value: !Ref AliasForMyApp
+    Export:
+      Name: S3BucketConfigurationLambdaAlias
