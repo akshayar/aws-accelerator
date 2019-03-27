@@ -11,7 +11,8 @@ phases:
       - pwd
       - npm install
       - npm run build-aws-lambda
-      - npm run s3-cp
+      - aws s3 cp get-upload-policy.zip s3://aksh-test-deploy/transcoder/get-upload-policy.zip 
+      - aws s3 cp appspec.yml s3://aksh-test-deploy/transcoder/appspec.yml
   post_build:
     commands:
       - echo Build completed on `date`
