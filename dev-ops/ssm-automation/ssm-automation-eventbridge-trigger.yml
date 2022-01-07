@@ -1,0 +1,109 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: This template creates a s3 bucket
+Parameters:
+  NotificationMail:
+    Type: String
+    Description: Email target of  notification.
+    AllowedPattern: ".+"
+Resources:
+  CloudWatchEventExecutionNotification:
+    Type: AWS::SNS::Topic
+  CloudWatchEventExecutionNotificationSub:
+    DependsOn:
+      - CloudWatchEventExecutionNotification
+    Type: 'AWS::SNS::Subscription'
+    Properties:
+      TopicArn: !Ref CloudWatchEventExecutionNotification
+      Endpoint: !Ref NotificationMail
+      Protocol: email-json
+  CloudWatchEventExecutionRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Sid: 'AllowServices'
+            Effect: Allow
+            Principal:
+              Service:
+                - events.amazonaws.com
+                - ssm.amazonaws.com
+                - ec2.amazonaws.com
+            Action: 'sts:AssumeRole'
+      Policies:
+        - PolicyName: EC2AllowTermination
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'sqs:*'
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - 'sns:*'
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - 'ec2:*'
+                Resource: '*'
+  EventBridgeServiceExectionRolePolicy:
+    Type: 'AWS::IAM::Policy'
+    Properties:
+      PolicyName: EventBridgeServiceExectionRolePolicy
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - "iam:PassRole"
+            Resource: !GetAtt CloudWatchEventExecutionRole.Arn
+            Condition:
+              StringLikeIfExists:
+                "iam:PassedToService": "ssm.amazonaws.com"
+          - Effect: Allow
+            Action:
+              - "ssm:StartAutomationExecution"
+            Resource:
+              - arn:aws:ssm:ap-south-1:*:automation-definition/AWS-TerminateEC2Instance:$DEFAULT
+      Roles:
+        - !Ref CloudWatchEventExecutionRole
+  CloudWatchEvent:
+    DependsOn:
+      - CloudWatchEventExecutionNotification
+    Type: 'AWS::Events::Rule'
+    Properties:
+      Description: EventRule for AWS Config
+      State: ENABLED
+      EventPattern:
+        source:
+          - aws.config
+        detail-type:
+          - Config Rules Compliance Change
+        detail:
+          messageType:
+            - ComplianceChangeNotification
+          configRuleName:
+            - desired-instance-type
+          resourceType:
+            - AWS::EC2::Instance
+          newEvaluationResult:
+            complianceType:
+              - NON_COMPLIANT
+      Targets:
+        - Arn: arn:aws:ssm:ap-south-1::automation-definition/AWS-TerminateEC2Instance
+          Id: RunCommand
+          RoleArn: !GetAtt CloudWatchEventExecutionRole.Arn
+          InputTransformer:
+            InputPathsMap:
+              instance: "$.detail.resourceId"
+            InputTemplate: !Sub "{\"AutomationAssumeRole\":[\"${CloudWatchEventExecutionRole.Arn}\"],\"InstanceId\":[\"<instance>\"]}"
+        - Arn: !Ref CloudWatchEventExecutionNotification
+          Id: SNSNotification
+Outputs:
+  Role:
+    Value: !Ref CloudWatchEventExecutionRole
+  CloudWatchEvent:
+    Value: !Ref CloudWatchEvent
+  SNS:
+    Value: !Ref CloudWatchEventExecutionNotification
