@@ -1,6 +1,11 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: This template creates a s3 bucket
 Parameters:
+  SSMAutomationARN:
+    Type: String
+    Description: Arn of Automation
+    Default: arn:aws:ssm:ap-south-1:*:automation-definition/AWS-TerminateEC2Instance:$DEFAULT
+
   NotificationMail:
     Type: String
     Description: Email target of  notification.
@@ -15,7 +20,7 @@ Resources:
     Properties:
       TopicArn: !Ref CloudWatchEventExecutionNotification
       Endpoint: !Ref NotificationMail
-      Protocol: email-json
+      Protocol: email
   CloudWatchEventExecutionRole:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -65,7 +70,7 @@ Resources:
             Action:
               - "ssm:StartAutomationExecution"
             Resource:
-              - arn:aws:ssm:ap-south-1:*:automation-definition/AWS-TerminateEC2Instance:$DEFAULT
+              - !Ref SSMAutomationARN
       Roles:
         - !Ref CloudWatchEventExecutionRole
   CloudWatchEvent:
@@ -91,7 +96,7 @@ Resources:
             complianceType:
               - NON_COMPLIANT
       Targets:
-        - Arn: arn:aws:ssm:ap-south-1::automation-definition/AWS-TerminateEC2Instance
+        - Arn: !Ref SSMAutomationARN
           Id: RunCommand
           RoleArn: !GetAtt CloudWatchEventExecutionRole.Arn
           InputTransformer:
