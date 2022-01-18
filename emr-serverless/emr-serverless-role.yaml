@@ -1,0 +1,57 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: This template creates a s3 bucket
+Parameters:
+  RoleName:
+    Type: String
+    Description: Name of Role
+    Default: emr-serverless-execution-role
+  TargetBucket:
+    Type: String
+    Description: The Bucket on which write to be done.
+    AllowedPattern: ".+"
+Resources:
+  EMRServerlessExecutionRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: !Ref RoleName
+      ManagedPolicyArns:
+        - "arn:aws:iam::aws:policy/AmazonKinesisFullAccess"
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Sid: 'EMRServerlessTrustPolicy'
+            Effect: Allow
+            Principal:
+              Service:
+                - emr-serverless.amazonaws.com
+            Action: 'sts:AssumeRole'
+
+  EMRServerlessExecutionPolicy:
+    Type: 'AWS::IAM::Policy'
+    Properties:
+      PolicyName: EMRServerlessExamplePolicy
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - "s3:GetObject"
+              - "s3:ListBucket"
+            Resource:
+              - "arn:aws:s3:::*.elasticmapreduce"
+              - "arn:aws:s3:::*.elasticmapreduce/*"
+          - Effect: Allow
+            Action:
+              - "s3:PutObject"
+              - "s3:GetObject"
+              - "s3:ListBucket"
+              - "s3:DeleteObject"
+            Resource:
+              - !Sub "arn:aws:s3:::${TargetBucket}"
+              - !Sub "arn:aws:s3:::${TargetBucket}/*"
+      Roles:
+        - !Ref EMRServerlessExecutionRole
+
+Outputs:
+  Role:
+    Value: !GetAtt EMRServerlessExecutionRole.Arn
