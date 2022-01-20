@@ -33,4 +33,6 @@ if __name__ == "__main__":
 
     weatherWithCurrentDate.write.mode("overwrite").option("path", target_path).saveAsTable(table_name)
 
-    spark.sql("select * from " + table_name).show()
+    aggregateData = spark.sql("select STATION,LATITUDE,LONGITUDE,NAME, max(MAX) maxtemp, min(MIN) mintemp, max(MAX-MIN) maxdiff, min(MAX-MIN) mindiff from " + table_name+" group by STATION,LATITUDE,LONGITUDE,NAME")
+
+    aggregateData.write.mode("overwrite").option("path", target_path+"_aggregate").saveAsTable(table_name+"_aggregate")

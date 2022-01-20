@@ -16,6 +16,7 @@ Resources:
       RoleName: !Ref RoleName
       ManagedPolicyArns:
         - "arn:aws:iam::aws:policy/AmazonKinesisFullAccess"
+        - "arn:aws:iam::aws:policy/AWSGlueSchemaRegistryFullAccess"
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -35,6 +36,24 @@ Resources:
         Statement:
           - Effect: Allow
             Action:
+              - "glue:GetDatabase"
+              - "glue:GetDatabases"
+              - "glue:CreateDatabase"
+              - "glue:GetTable"
+              - "glue:GetTables"
+              - "glue:CreateTable"
+              - "glue:DeleteTable"
+              - "glue:UpdateTable"
+              - "glue:GetUserDefinedFunctions"
+              - "glue:GetPartition"
+              - "glue:GetPartitions"
+              - "glue:CreatePartition"
+              - "glue:DeletePartition"
+              - "glue:BatchCreatePartition"
+              - "glue:BatchDeletePartition"
+            Resource: "*"
+          - Effect: Allow
+            Action:
               - "s3:GetObject"
               - "s3:ListBucket"
             Resource:
@@ -49,6 +68,8 @@ Resources:
             Resource:
               - !Sub "arn:aws:s3:::${TargetBucket}"
               - !Sub "arn:aws:s3:::${TargetBucket}/*"
+              - "arn:aws:s3:::noaa-gsod-pds"
+              - "arn:aws:s3:::noaa-gsod-pds/*"
       Roles:
         - !Ref EMRServerlessExecutionRole
 

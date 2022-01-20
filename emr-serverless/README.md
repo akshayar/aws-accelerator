@@ -69,7 +69,7 @@ JOB_RUN_ID=<JOB-RUN-ID>
 
 aws emr-serverless list-job-runs --application-id $APPLICATION_ID
 
-aws emr-serverless get-job-run --application-id $APPLICATION_ID --job-run-id ${JOB_RUN_ID}
+aws emr-serverless get-job-run --application-id $APPLICATION_ID --job-run-id ${JOB_RUN_ID} --query jobRun.state --output text
 
 aws s3 cp s3://akshaya-emr-workshop/logs/applications/$APPLICATION_ID/jobs/${JOB_RUN_ID}/SPARK_DRIVER/stdout.gz .
 
@@ -89,7 +89,7 @@ aws s3 cp "s3://nyc-tlc/trip data/yellow_tripdata_2020-04.csv" s3://akshaya-emr-
 ```shell
 aws s3 cp <path-to-pyspark-script> s3://akshaya-emr-workshop/pyspark/copy-data.py
 
-aws emr-serverless start-job-run \
+JOB_RUN_ID=`aws emr-serverless start-job-run \
     --application-id ${APPLICATION_ID} \
     --execution-role-arn ${ROLE_ARN} \
     --job-driver '{
@@ -105,7 +105,7 @@ aws emr-serverless start-job-run \
              "logUri": "s3://akshaya-emr-workshop/logs"
            }
         }
-    }'
+    }' --query jobRunId --output text`
   
  JOB_RUN_ID=<JOB-RUN-ID> 
  
@@ -119,6 +119,25 @@ aws emr-serverless start-job-run \
  cat ${JOB_RUN_ID}/stdout.gz | gunzip
  
  cat ${JOB_RUN_ID}/stderr.gz | gunzip
+ 
+ ## Start job run without sparkSubmitParameters
+ JOB_RUN_ID=`aws emr-serverless start-job-run \
+    --application-id ${APPLICATION_ID} \
+    --execution-role-arn ${ROLE_ARN} \
+    --job-driver '{
+        "sparkSubmit": {
+            "entryPoint": "s3://'${S3_BUCKET}'/pyspark/copy-data.py",
+            "entryPointArguments": ["s3://noaa-gsod-pds/2021/","s3://'${S3_BUCKET}'/output/noaa_gsod_pds","default.noaa_gsod_pds"]
+            
+        }
+    }' \
+    --configuration-overrides '{
+        "monitoringConfiguration": {
+           "s3MonitoringConfiguration": {
+             "logUri": "s3://'${S3_BUCKET}'/logs"
+           }
+        }
+    }' --query jobRunId --output text`
  
  
  
