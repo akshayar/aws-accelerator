@@ -179,7 +179,7 @@ aws emr-serverless start-job-run \
     --job-driver '{
         "sparkSubmit": {
             "entryPoint": "s3://akshaya-emr-workshop/Spark-Structured-Streaming-Kinesis-Hudi-assembly-1.0.jar",
-            "entryPointArguments": ["akshaya-emr-workshop","data-stream-ingest","us-east-1", "COW","serverless_parquet_table","arn:aws:iam::799223504601:role/emr-serverless-job-role","session-test","e"],
+            "entryPointArguments": ["akshaya-emr-workshop","data-stream-ingest","us-east-1", "COW","serverless_parquet_table","'${ROLE_ARN}'","session-test","e"],
             "sparkSubmitParameters": "--conf spark.jars=s3://akshaya-emr-workshop/spark-sql-kinesis_2.12-1.2.0_spark-3.0.jar,s3://akshaya-emr-workshop/spark-streaming-kinesis-asl_2.12-3.1.1.jar --conf spark.executor.cores=2 --conf spark.executor.memory=4g --conf spark.driver.cores=1 --conf spark.driver.memory=4g --conf spark.executor.instances=1 --class kinesis.parquet.latefile.SparkKinesisConsumerParquetProcessor"
         }
     }' \
